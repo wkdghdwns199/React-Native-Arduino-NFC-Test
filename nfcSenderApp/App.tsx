@@ -1,117 +1,178 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// import React, {useState, useEffect} from 'react';
+// import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+// import NfcManager, {NfcTech} from 'react-native-nfc-manager';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+// // Pre-step, call this before any NFC operations
+// NfcManager.start();
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+// function App() {
+//   const [count, setCount] = useState(1);
+//   const [uid, setUid] = useState('');
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+//   async function readNdef() {
+//     try {
+//       await NfcManager.requestTechnology(NfcTech.Ndef);
+//       const tag = await NfcManager.getTag();
+//       setCount(count + 1);
+//       console.warn('Tag found', tag);
+//       setUid(tag.id);
+//     } catch (ex) {
+//       console.warn('Oops!', ex);
+//     } finally {
+//       NfcManager.cancelTechnologyRequest();
+//     }
+//   }
 
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+
+//   return (
+//     <View style={styles.wrapper}>
+//       <TouchableOpacity onPress={readNdef}>
+//         <Text style={styles.tit}>터치 후 스캔</Text>
+//       </TouchableOpacity>
+//       <Text style={styles.count}>카운트 : {count}</Text>
+//       <Text style={styles.count}>UID : {uid}</Text>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   wrapper: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   tit: {
+//     marginBottom: 20,
+//     fontSize: 40,
+//   },
+//   count: {
+//     fontSize: 40,
+//   },
+// });
+
+// export default App;
+
+// import React, { useState, useEffect } from 'react';
+// import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+// import NfcManager, { NfcTech } from 'react-native-nfc-manager';
+
+// NfcManager.start();
+
+// function App() {
+//   const [count, setCount] = useState(1);
+//   const [uid, setUid] = useState('');
+
+//   async function readNdef() {
+//     try {
+//       const isEnabled = await NfcManager.isEnabled(); // Check if NFC is enabled
+//       if (!isEnabled) {
+//         // If NFC is not enabled, prompt the user to enable it
+//         Linking.openURL('app-settings:nfc'); // Open NFC settings on Android
+//       } else {
+//         await NfcManager.requestTechnology(NfcTech.Ndef);
+//         const tag = await NfcManager.getTag();
+//         setCount(count + 1);
+//         console.warn('Tag found', tag);
+//         setUid(tag.id);
+//       }
+//     } catch (ex) {
+//       console.warn('Oops!', ex);
+//     } finally {
+//       NfcManager.cancelTechnologyRequest();
+//     }
+//   }
+
+//   return (
+//     <View style={styles.wrapper}>
+//       <TouchableOpacity onPress={readNdef}>
+//         <Text style={styles.tit}>터치 후 스캔</Text>
+//       </TouchableOpacity>
+//       <Text style={styles.count}>카운트 : {count}</Text>
+//       <Text style={styles.count}>UID : {uid}</Text>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   wrapper: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//   },
+//   tit: {
+//     marginBottom: 20,
+//     fontSize: 40,
+//   },
+//   count: {
+//     fontSize: 40,
+//   },
+// });
+
+// export default App;
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import NfcManager, { NfcTech } from 'react-native-nfc-manager';
+
+NfcManager.start();
+
+function App() {
+  const [count, setCount] = useState(1);
+  const [uid, setUid] = useState('');
+
+  useEffect(() => {
+    const readNdef = async () => {
+      try {
+        const isEnabled = await NfcManager.isEnabled(); // Check if NFC is enabled
+        if (!isEnabled) {
+          // If NFC is not enabled, prompt the user to enable it
+          await NfcManager.goToNfcSetting(); // Open NFC settings on Android
+        } else {
+          await NfcManager.requestTechnology(NfcTech.Ndef);
+          const tag = await NfcManager.getTag();
+          setCount(count + 1);
+          console.warn('Tag found', tag);
+          setUid(tag.id);
+        }
+      } catch (ex) {
+        console.warn('Oops!', ex);
+      } finally {
+        NfcManager.cancelTechnologyRequest();
+      }
+    };
+
+    // 주기적으로 NFC 스캔
+    const nfcScanInterval = setInterval(() => {
+      readNdef();
+    }, 500); // 매 10초마다 스캔 (원하는 간격으로 조절 가능)
+
+    return () => {
+      // 언마운트 시, 스캔 인터벌 제거
+      clearInterval(nfcScanInterval);
+    };
+  }, [count]);
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.wrapper}>
+      <Text style={styles.tit}>NFC 정보 가져오기</Text>
+      <Text style={styles.count}>카운트 : {count}</Text>
+      <Text style={styles.count}>UID : {uid}</Text>
     </View>
   );
 }
 
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  wrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  tit: {
+    marginBottom: 20,
+    fontSize: 40,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  count: {
+    fontSize: 40,
   },
 });
 
